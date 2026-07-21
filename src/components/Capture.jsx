@@ -90,7 +90,6 @@ export default function Capture({ onAnalyze, loading, error, onResetProfile }) {
               ref={fileRef}
               type="file"
               accept="image/*"
-              capture="environment"
               onChange={handleFile}
               style={{ display: 'none' }}
             />
@@ -126,7 +125,6 @@ export default function Capture({ onAnalyze, loading, error, onResetProfile }) {
                 ref={fileRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={handleFile}
                 style={{ display: 'none' }}
               />
