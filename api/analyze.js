@@ -20,12 +20,6 @@ export default async function handler(req, res) {
   const mediaType = match[1]
   const base64Data = match[2]
 
-  const traitLine = (label, val) => {
-    if (val === undefined) return null
-    const sign = val > 0 ? '+' : ''
-    return `${label}: ${sign}${val}`
-  }
-
   const profileText = `
 Liked wine types: ${profile?.likedTypes?.join(', ') || 'none specified'}
 Disliked wine types: ${profile?.dislikedTypes?.join(', ') || 'none specified'}
@@ -78,39 +72,48 @@ If you genuinely cannot read any wine list in the image, respond with:
 { "error": "description of the issue" }`
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image',
-                source: { type: 'base64', media_type: mediaType, data: base64Data }
-              },
-              {
-                type: 'text',
-                text: 'Here is the wine list. Please recommend wines for me based on my taste profile in your system instructions.'
-              }
-            ]
-          }
-        ]
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 30000) // 30s safety timeout
+
+    let response
+    try {
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'claude-sonnet-5',
+          max_tokens: 2000,
+          system: systemPrompt,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: { type: 'base64', media_type: mediaType, data: base64Data }
+                },
+                {
+                  type: 'text',
+                  text: 'Here is the wine list. Please recommend wines for me based on my taste profile in your system instructions.'
+                }
+              ]
+            }
+          ]
+        })
       })
-    })
+    } finally {
+      clearTimeout(timeoutId)
+    }
 
     if (!response.ok) {
       const errText = await response.text()
       console.error('Anthropic API error:', errText)
-      return res.status(502).json({ error: 'Could not analyze the photo right now.' })
+      return res.status(502).json({ error: `Anthropic API error (${response.status}): ${errText.slice(0, 200)}` })
     }
 
     const data = await response.json()
@@ -119,7 +122,14 @@ If you genuinely cannot read any wine list in the image, respond with:
       return res.status(502).json({ error: 'No response from model.' })
     }
 
-    let cleaned = textBlock.text.trim().replace(/^```json\s*/i, '').replace(/```$/, '')
+    let cleaned = textBlock.text.trim().replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim()
+    // Belt-and-suspenders: if there's any stray text around the JSON,
+    // extract just the outermost {...} block.
+    const firstBrace = cleaned.indexOf('{')
+    const lastBrace = cleaned.lastIndexOf('}')
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.slice(firstBrace, lastBrace + 1)
+    }
     let parsed
     try {
       parsed = JSON.parse(cleaned)
@@ -135,6 +145,9 @@ If you genuinely cannot read any wine list in the image, respond with:
     return res.status(200).json(parsed)
   } catch (e) {
     console.error(e)
+    if (e.name === 'AbortError') {
+      return res.status(504).json({ error: 'The wine list took too long to analyze — try again.' })
+    }
     return res.status(500).json({ error: 'Something went wrong analyzing the photo.' })
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 const WINE_GROUPS = [
   {
@@ -52,6 +52,34 @@ export default function Onboarding({ profile, onComplete }) {
     }
   }
 
+  // Long-press on touch devices fires a click right after touchend,
+  // which would immediately undo the dislike we just set. This ref
+  // persists across the re-render that longPressDislike triggers,
+  // so the click handler can tell it should be ignored.
+  const longPressFiredRef = useRef(null) // holds the `type` that was just long-pressed
+  const timerRef = useRef(null)
+
+  function makeChipHandlers(type) {
+    return {
+      onClick: () => {
+        if (longPressFiredRef.current === type) {
+          longPressFiredRef.current = null
+          return
+        }
+        toggleType(type)
+      },
+      onContextMenu: (e) => { e.preventDefault(); longPressFiredRef.current = type; longPressDislike(type) },
+      onTouchStart: () => {
+        timerRef.current = setTimeout(() => {
+          longPressFiredRef.current = type
+          longPressDislike(type)
+        }, 500)
+      },
+      onTouchEnd: () => clearTimeout(timerRef.current),
+      onTouchMove: () => clearTimeout(timerRef.current),
+    }
+  }
+
   function finish() {
     onComplete({
       onboarded: true,
@@ -81,12 +109,7 @@ export default function Onboarding({ profile, onComplete }) {
                   <button
                     key={type}
                     className={`chip ${liked.includes(type) ? 'selected-like' : ''} ${disliked.includes(type) ? 'selected-dislike' : ''}`}
-                    onClick={() => toggleType(type)}
-                    onContextMenu={(e) => { e.preventDefault(); longPressDislike(type) }}
-                    onTouchStart={(e) => {
-                      e.currentTarget._t = setTimeout(() => longPressDislike(type), 500)
-                    }}
-                    onTouchEnd={(e) => clearTimeout(e.currentTarget._t)}
+                    {...makeChipHandlers(type)}
                   >
                     {type}
                   </button>

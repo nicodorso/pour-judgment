@@ -1,14 +1,13 @@
-import { useState } from 'react'
+import { useState, useId } from 'react'
 
 function GlassFill({ score }) {
   const pct = Math.max(0, Math.min(5, score || 3)) / 5
-  // simple glass silhouette; fill height driven by clip-path
-  const fillPct = Math.round(pct * 100)
+  const uid = useId()
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <svg width="20" height="26" viewBox="0 0 20 26" aria-hidden="true">
         <defs>
-          <clipPath id={`clip-${fillPct}`}>
+          <clipPath id={uid}>
             <rect x="0" y={26 - (16 * pct)} width="20" height={16 * pct} />
           </clipPath>
         </defs>
@@ -19,7 +18,7 @@ function GlassFill({ score }) {
         <line x1="5.5" y1="23" x2="14.5" y2="23" stroke="var(--bone-dim)" strokeWidth="1.2" />
         {/* wine fill, clipped to glass bowl shape */}
         <path d="M3 2 L6.5 15 A3.5 3.5 0 0 0 13.5 15 L17 2"
-          fill="var(--copper)" clipPath={`url(#clip-${fillPct})`} opacity="0.9" />
+          fill="var(--copper)" clipPath={`url(#${uid})`} opacity="0.9" />
       </svg>
       <span className="eyebrow" style={{ color: 'var(--bone-dim)' }}>{score}/5</span>
     </div>
@@ -69,15 +68,23 @@ function WineCard({ wine, isTop, onFeedback, feedbackGiven }) {
       )}
 
       <div className="divider" />
-      {feedbackGiven ? (
-        <p className="body-text" style={{ fontSize: 13, color: 'var(--copper-bright)' }}>Thanks — that'll sharpen future picks.</p>
-      ) : (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 12px' }} onClick={() => onFeedback(wine, 'good')}>👍 Good pick</button>
-          <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 12px' }} onClick={() => onFeedback(wine, 'soso')}>😐 So-so</button>
-          <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 12px' }} onClick={() => onFeedback(wine, 'miss')}>👎 Miss</button>
-        </div>
-      )}
+      <div>
+        {feedbackGiven && (
+          <p className="body-text" style={{ fontSize: 13, color: 'var(--copper-bright)', marginBottom: 8 }}>
+            Thanks — that'll sharpen future picks. <button
+              onClick={() => onFeedback(wine, null)}
+              style={{ background: 'none', border: 'none', textDecoration: 'underline', color: 'var(--bone-dim)', fontSize: 13, padding: 0, cursor: 'pointer' }}
+            >Change</button>
+          </p>
+        )}
+        {!feedbackGiven && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 12px' }} onClick={() => onFeedback(wine, 'good')}>👍 Good pick</button>
+            <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 12px' }} onClick={() => onFeedback(wine, 'soso')}>😐 So-so</button>
+            <button className="btn-ghost" style={{ fontSize: 13, padding: '10px 12px' }} onClick={() => onFeedback(wine, 'miss')}>👎 Miss</button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

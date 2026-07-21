@@ -57,6 +57,14 @@ export default function App() {
   }
 
   function handleFeedback(wine, rating) {
+    if (rating === null) {
+      setFeedbackMap(prev => {
+        const next = { ...prev }
+        delete next[wine.name]
+        return next
+      })
+      return
+    }
     addFeedback({ wineName: wine.name, rating })
     setFeedbackMap(prev => ({ ...prev, [wine.name]: rating }))
   }
