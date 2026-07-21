@@ -1,10 +1,18 @@
 import { useState } from 'react'
 
-const WINE_TYPES = [
-  'Pinot Noir', 'Cabernet Sauvignon', 'Merlot', 'Syrah/Shiraz', 'Malbec',
-  'Zinfandel', 'Sangiovese', 'Tempranillo', 'GSM Blends',
-  'Sauvignon Blanc', 'Chardonnay', 'Riesling', 'Pinot Grigio', 'Rosé',
-  'Champagne/Sparkling', 'Orange/Skin-contact'
+const WINE_GROUPS = [
+  {
+    label: 'Reds',
+    types: ['Pinot Noir', 'Cabernet Sauvignon', 'Merlot', 'Syrah/Shiraz', 'Malbec', 'Zinfandel', 'Sangiovese', 'Tempranillo', 'GSM Blends']
+  },
+  {
+    label: 'Whites',
+    types: ['Sauvignon Blanc', 'Chardonnay', 'Riesling', 'Pinot Grigio']
+  },
+  {
+    label: 'Rosé, sparkling & orange',
+    types: ['Rosé', 'Champagne/Sparkling', 'Orange/Skin-contact']
+  }
 ]
 
 const TRAIT_QUESTIONS = [
@@ -61,25 +69,30 @@ export default function Onboarding({ profile, onComplete }) {
         <>
           <h1 className="h1" style={{ marginTop: 10 }}>What do you usually reach for?</h1>
           <p className="body-text" style={{ marginTop: 8 }}>
-            Tap once for <strong style={{ color: 'var(--sage)' }}>like</strong>, tap again to clear.
-            Tap and hold for <strong style={{ color: 'var(--bordeaux-bright)' }}>dislike</strong>.
+            Tap once for <strong style={{ color: 'var(--verjus)' }}>like</strong>, tap again to clear.
+            Tap and hold for <strong style={{ color: 'var(--claret)' }}>dislike</strong>.
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 20 }}>
-            {WINE_TYPES.map(type => (
-              <button
-                key={type}
-                className={`chip ${liked.includes(type) ? 'selected-like' : ''} ${disliked.includes(type) ? 'selected-dislike' : ''}`}
-                onClick={() => toggleType(type)}
-                onContextMenu={(e) => { e.preventDefault(); longPressDislike(type) }}
-                onTouchStart={(e) => {
-                  e.currentTarget._t = setTimeout(() => longPressDislike(type), 500)
-                }}
-                onTouchEnd={(e) => clearTimeout(e.currentTarget._t)}
-              >
-                {type}
-              </button>
-            ))}
-          </div>
+          {WINE_GROUPS.map(group => (
+            <div key={group.label} style={{ marginTop: 20 }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>{group.label}</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {group.types.map(type => (
+                  <button
+                    key={type}
+                    className={`chip ${liked.includes(type) ? 'selected-like' : ''} ${disliked.includes(type) ? 'selected-dislike' : ''}`}
+                    onClick={() => toggleType(type)}
+                    onContextMenu={(e) => { e.preventDefault(); longPressDislike(type) }}
+                    onTouchStart={(e) => {
+                      e.currentTarget._t = setTimeout(() => longPressDislike(type), 500)
+                    }}
+                    onTouchEnd={(e) => clearTimeout(e.currentTarget._t)}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </>
       )}
 
@@ -92,7 +105,7 @@ export default function Onboarding({ profile, onComplete }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 26, marginTop: 24 }}>
             {TRAIT_QUESTIONS.map(q => (
               <div key={q.key}>
-                <div className="body-text" style={{ color: 'var(--parchment)', fontWeight: 600, marginBottom: 8 }}>{q.label}</div>
+                <div className="body-text" style={{ color: 'var(--bone)', fontWeight: 600, marginBottom: 8 }}>{q.label}</div>
                 <input
                   type="range"
                   min={-2}
@@ -100,9 +113,9 @@ export default function Onboarding({ profile, onComplete }) {
                   step={1}
                   value={traits[q.key]}
                   onChange={(e) => setTraits({ ...traits, [q.key]: Number(e.target.value) })}
-                  style={{ width: '100%', accentColor: 'var(--gold)' }}
+                  style={{ width: '100%', accentColor: 'var(--copper-bright)' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--parchment-dim)', fontFamily: 'var(--mono)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--bone-dim)', fontFamily: 'var(--mono)' }}>
                   <span>{q.left}</span>
                   <span>{q.right}</span>
                 </div>
@@ -124,7 +137,7 @@ export default function Onboarding({ profile, onComplete }) {
             placeholder="e.g. Loved a Willamette Valley Pinot last month. Not a fan of overly oaky Chardonnay."
             rows={5}
             style={{
-              marginTop: 16, background: 'var(--garnet-light)', color: 'var(--parchment)',
+              marginTop: 16, background: 'var(--surface)', color: 'var(--bone)',
               border: '1px solid rgba(245,237,228,0.15)', borderRadius: 4, padding: 14,
               fontFamily: 'var(--body)', fontSize: 15, resize: 'vertical'
             }}

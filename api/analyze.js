@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { image, profile, feedbackSummary } = req.body || {}
+  const { image, profile, feedbackSummary, mood } = req.body || {}
   if (!image) {
     return res.status(400).json({ error: 'No image provided' })
   }
@@ -40,6 +40,10 @@ Freeform notes from user: ${profile?.notes || 'none'}
 ${feedbackSummary ? `\nPast feedback to learn from: ${feedbackSummary}` : ''}
 `.trim()
 
+  const moodLine = mood && mood !== 'any'
+    ? `\n\nIMPORTANT: The user specifically wants a ${mood.toUpperCase()} wine right now, regardless of what their general taste profile might otherwise suggest. Only recommend wines from the list that match this category. If the list has no wines matching this category, say so honestly in menuSummary and return an empty recommendations array.`
+    : ''
+
   const systemPrompt = `You are a friendly, non-snobby wine guide helping someone pick from a restaurant or bar wine list, using a photo of the menu. The user is NOT a wine expert and dislikes jargon-heavy explanations. Write in plain, warm, conversational language.
 
 Task:
@@ -52,7 +56,7 @@ Task:
 7. Order recommendations best-match first.
 
 User's taste profile:
-${profileText}
+${profileText}${moodLine}
 
 Respond with ONLY valid JSON, no markdown fences, no preamble, in this exact shape:
 {

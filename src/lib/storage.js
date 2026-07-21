@@ -31,6 +31,14 @@ export function saveProfile(profile) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
 }
 
+// Clears the taste profile so the user can retake the questionnaire.
+// Feedback history is left intact by default since it's tied to actual
+// wines tried, not the quiz answers — pass clearHistory=true to wipe both.
+export function resetProfile(clearHistory = false) {
+  localStorage.removeItem(PROFILE_KEY)
+  if (clearHistory) localStorage.removeItem(HISTORY_KEY)
+}
+
 export function getHistory() {
   try {
     const raw = localStorage.getItem(HISTORY_KEY)

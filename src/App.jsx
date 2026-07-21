@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Onboarding from './components/Onboarding.jsx'
 import Capture from './components/Capture.jsx'
 import Results from './components/Results.jsx'
-import { getProfile, saveProfile, addFeedback, summarizeFeedback } from './lib/storage.js'
+import { getProfile, saveProfile, addFeedback, summarizeFeedback, resetProfile } from './lib/storage.js'
 
 export default function App() {
   const [profile, setProfile] = useState(getProfile())
@@ -18,7 +18,7 @@ export default function App() {
     setView('capture')
   }
 
-  async function analyzePhoto(imageDataUrl) {
+  async function analyzePhoto(imageDataUrl, mood) {
     setLoading(true)
     setError(null)
     setResult(null)
@@ -30,7 +30,8 @@ export default function App() {
         body: JSON.stringify({
           image: imageDataUrl,
           profile,
-          feedbackSummary: summarizeFeedback()
+          feedbackSummary: summarizeFeedback(),
+          mood
         })
       })
       if (!res.ok) throw new Error('Request failed')
@@ -56,13 +57,19 @@ export default function App() {
     setView('capture')
   }
 
+  function handleResetProfile() {
+    resetProfile()
+    setProfile(getProfile())
+    setView('onboarding')
+  }
+
   return (
     <>
       {view === 'onboarding' && (
         <Onboarding profile={profile} onComplete={completeOnboarding} />
       )}
       {view === 'capture' && (
-        <Capture onAnalyze={analyzePhoto} loading={loading} error={error} />
+        <Capture onAnalyze={analyzePhoto} loading={loading} error={error} onResetProfile={handleResetProfile} />
       )}
       {view === 'results' && (
         <Results result={result} onFeedback={handleFeedback} feedbackMap={feedbackMap} onNewPhoto={newPhoto} />
