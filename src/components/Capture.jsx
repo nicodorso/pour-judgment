@@ -9,6 +9,32 @@ const MOODS = [
   { key: 'orange', label: 'Orange' },
 ]
 
+// Resizes/compresses the photo before upload so we stay well under
+// serverless request-size limits (phone photos are often 3-8MB raw).
+function compressImage(dataUrl, maxDimension = 1600, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      let { width, height } = img
+      if (width > height && width > maxDimension) {
+        height = Math.round(height * (maxDimension / width))
+        width = maxDimension
+      } else if (height > maxDimension) {
+        width = Math.round(width * (maxDimension / height))
+        height = maxDimension
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = reject
+    img.src = dataUrl
+  })
+}
+
 export default function Capture({ onAnalyze, loading, error, onResetProfile }) {
   const fileRef = useRef(null)
   const [preview, setPreview] = useState(null)
@@ -18,9 +44,16 @@ export default function Capture({ onAnalyze, loading, error, onResetProfile }) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => {
-      setPreview(reader.result)
-      onAnalyze(reader.result, mood)
+    reader.onload = async () => {
+      try {
+        const compressed = await compressImage(reader.result)
+        setPreview(compressed)
+        onAnalyze(compressed, mood)
+      } catch {
+        // fall back to original if compression fails for any reason
+        setPreview(reader.result)
+        onAnalyze(reader.result, mood)
+      }
     }
     reader.readAsDataURL(file)
   }

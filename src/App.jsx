@@ -34,13 +34,23 @@ export default function App() {
           mood
         })
       })
-      if (!res.ok) throw new Error('Request failed')
+      if (!res.ok) {
+        let detail = ''
+        try {
+          const errBody = await res.json()
+          detail = errBody?.error ? ` (${errBody.error})` : ` (status ${res.status})`
+        } catch {
+          detail = ` (status ${res.status})`
+        }
+        throw new Error('Request failed' + detail)
+      }
       const data = await res.json()
       if (data.error) throw new Error(data.error)
       setResult(data)
       setView('results')
     } catch (e) {
-      setError("Couldn't read that list — try a clearer, well-lit photo of the wine section.")
+      console.error('Analyze error:', e)
+      setError(e.message?.includes('(') ? `Couldn't read that list — ${e.message}` : "Couldn't read that list — try a clearer, well-lit photo of the wine section.")
     } finally {
       setLoading(false)
     }
