@@ -36,6 +36,7 @@ Taste traits (scale -2 to 2, 0 = neutral):
 - Tannin (smooth -2 to bold/grippy +2): ${profile?.traits?.tannin}
 - Oak/butter (clean -2 to buttery/toasty +2): ${profile?.traits?.oak}
 - Fizz (still -2 to loves bubbles +2): ${profile?.traits?.fizz}
+- Style (earthy/restrained/Old World -2 to ripe/fruit-forward/New World +2): ${profile?.traits?.style}
 Freeform notes from user: ${profile?.notes || 'none'}
 ${feedbackSummary ? `\nPast feedback to learn from: ${feedbackSummary}` : ''}
 `.trim()

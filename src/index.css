@@ -1,14 +1,14 @@
 :root {
-  --ink: #14181C;
-  --surface: #1E252B;
-  --surface-raised: #262E35;
-  --bone: #F2EFEA;
-  --bone-dim: #A8AFB5;
-  --verjus: #B8C97A;
-  --verjus-dim: #8FA05A;
-  --copper: #C08552;
-  --copper-bright: #D89A63;
-  --claret: #B4495A;
+  --ink: #EDEFE8;
+  --surface: #FAFAF5;
+  --surface-raised: #F3F4EC;
+  --bone: #1E2A22;
+  --bone-dim: #5C665A;
+  --verjus: #4C6424;
+  --verjus-dim: #7C9A48;
+  --copper: #96622F;
+  --copper-bright: #6E4720;
+  --claret: #8C3245;
 
   --display: 'Newsreader', Georgia, serif;
   --body: 'Inter', -apple-system, sans-serif;
@@ -50,7 +50,7 @@ textarea:focus-visible,
 
 ::selection {
   background: var(--verjus-dim);
-  color: var(--ink);
+  color: var(--bone);
 }
 
 .eyebrow {
@@ -122,7 +122,7 @@ textarea:focus-visible,
 .btn-ghost {
   background: transparent;
   color: var(--bone-dim);
-  border: 1px solid rgba(242,239,234,0.22);
+  border: 1px solid rgba(30,42,34,0.22);
   border-radius: 3px;
   padding: 14px 20px;
   font-size: 15px;
@@ -136,7 +136,7 @@ textarea:focus-visible,
   gap: 6px;
   padding: 8px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(242,239,234,0.22);
+  border: 1px solid rgba(30,42,34,0.22);
   color: var(--bone-dim);
   font-size: 14px;
   background: transparent;
@@ -155,14 +155,14 @@ textarea:focus-visible,
 
 .card {
   background: var(--surface);
-  border: 1px solid rgba(242,239,234,0.08);
+  border: 1px solid rgba(30,42,34,0.08);
   border-radius: 4px;
   padding: 18px;
 }
 
 .divider {
   height: 1px;
-  background-image: linear-gradient(90deg, rgba(242,239,234,0.25) 40%, transparent 0%);
+  background-image: linear-gradient(90deg, rgba(30,42,34,0.25) 40%, transparent 0%);
   background-size: 8px 1px;
   background-repeat: repeat-x;
   margin: 20px 0;
@@ -194,7 +194,7 @@ textarea:focus-visible,
 .spinner {
   width: 22px;
   height: 22px;
-  border: 2px solid rgba(242,239,234,0.22);
+  border: 2px solid rgba(30,42,34,0.22);
   border-top-color: var(--copper-bright);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;

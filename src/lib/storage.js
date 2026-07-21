@@ -12,7 +12,8 @@ export const defaultProfile = {
     body: 0,          // light <-> full/rich
     tannin: 0,         // smooth <-> grippy/bold
     oak: 0,            // clean/fresh <-> buttery/oaky
-    fizz: 0            // still <-> bubbly
+    fizz: 0,            // still <-> bubbly
+    style: 0            // earthy & restrained (Old World) <-> ripe & fruit-forward (New World)
   },
   notes: ''
 }

@@ -3,11 +3,11 @@ import { useState } from 'react'
 const WINE_GROUPS = [
   {
     label: 'Reds',
-    types: ['Pinot Noir', 'Cabernet Sauvignon', 'Merlot', 'Syrah/Shiraz', 'Malbec', 'Zinfandel', 'Sangiovese', 'Tempranillo', 'GSM Blends']
+    types: ['Pinot Noir', 'Cabernet Sauvignon', 'Syrah', 'Sangiovese', 'Malbec', 'Zinfandel']
   },
   {
     label: 'Whites',
-    types: ['Sauvignon Blanc', 'Chardonnay', 'Riesling', 'Pinot Grigio']
+    types: ['Sauvignon Blanc', 'Chardonnay (rich, buttery style)', 'Riesling', 'Pinot Grigio', 'Viognier']
   },
   {
     label: 'Rosé, sparkling & orange',
@@ -22,6 +22,7 @@ const TRAIT_QUESTIONS = [
   { key: 'tannin', label: 'Grip (reds)', left: 'Smooth', right: 'Bold & grippy' },
   { key: 'oak', label: 'Oak / butter', left: 'Clean & fresh', right: 'Buttery & toasty' },
   { key: 'fizz', label: 'Bubbles', left: 'Still', right: 'Love bubbles' },
+  { key: 'style', label: 'Overall style', left: 'Earthy & restrained', right: 'Ripe & fruit-forward' },
 ]
 
 export default function Onboarding({ profile, onComplete }) {
