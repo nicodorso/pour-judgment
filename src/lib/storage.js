@@ -1,28 +1,38 @@
-const PROFILE_KEY = 'pj_profile_v1'
+const PROFILE_KEY = 'pj_profile_v3'
 const HISTORY_KEY = 'pj_history_v1'
 
+// No more upfront onboarding or global traits — everything is
+// collected progressively, per color, the first time it's picked.
 export const defaultProfile = {
-  onboarded: false,
-  likedTypes: [],   // e.g. ['Pinot Noir', 'Sauvignon Blanc']
-  dislikedTypes: [],
-  traits: {
-    // -2 = strongly dislike, 0 = neutral, 2 = strongly like
-    acidity: 0,      // tart/crisp <-> soft
-    sweetness: 0,     // bone dry <-> sweet
-    body: 0,          // light <-> full/rich
-    tannin: 0,         // smooth <-> grippy/bold
-    oak: 0,            // clean/fresh <-> buttery/oaky
-    fizz: 0,            // still <-> bubbly
-    style: 0            // earthy & restrained (Old World) <-> ripe & fruit-forward (New World)
+  colorTraits: {
+    red: { loved: '', avoided: '', fruitCharacter: 0, texture: 0, weight: 0 },
+    white: { loved: '', avoided: '', acidity: 0, minerality: 0, sweetness: 0, weight: 0, oak: 0 },
+    rose: { loved: '', avoided: '', acidity: 0, sweetness: 0, weight: 0 },
+    sparkling: { loved: '', avoided: '', sweetness: 0 },
+    orange: { loved: '', avoided: '', acidity: 0, texture: 0 }
   },
-  notes: ''
+  answeredColors: { red: false, white: false, rose: false, sparkling: false, orange: false }
+}
+
+function deepMerge(base, override) {
+  const out = { ...base }
+  for (const key of Object.keys(base)) {
+    if (override && override[key] !== undefined) {
+      if (typeof base[key] === 'object' && base[key] !== null && !Array.isArray(base[key])) {
+        out[key] = deepMerge(base[key], override[key])
+      } else {
+        out[key] = override[key]
+      }
+    }
+  }
+  return out
 }
 
 export function getProfile() {
   try {
     const raw = localStorage.getItem(PROFILE_KEY)
     if (!raw) return { ...defaultProfile }
-    return { ...defaultProfile, ...JSON.parse(raw) }
+    return deepMerge(defaultProfile, JSON.parse(raw))
   } catch {
     return { ...defaultProfile }
   }
@@ -32,12 +42,34 @@ export function saveProfile(profile) {
   localStorage.setItem(PROFILE_KEY, JSON.stringify(profile))
 }
 
-// Clears the taste profile so the user can retake the questionnaire.
-// Feedback history is left intact by default since it's tied to actual
-// wines tried, not the quiz answers — pass clearHistory=true to wipe both.
-export function resetProfile(clearHistory = false) {
+// Saves answers to a single color's quiz (sliders + loved/avoided text)
+// and marks that color as answered so we don't ask again.
+export function saveColorTraits(color, values) {
+  const profile = getProfile()
+  const updated = {
+    ...profile,
+    colorTraits: { ...profile.colorTraits, [color]: { ...profile.colorTraits[color], ...values } },
+    answeredColors: { ...profile.answeredColors, [color]: true }
+  }
+  saveProfile(updated)
+  return updated
+}
+
+// Resets one color's preferences (so its mini-quiz will be asked again),
+// or wipes the whole profile if no color is given.
+export function resetProfile(color) {
+  if (color) {
+    const profile = getProfile()
+    const updated = {
+      ...profile,
+      colorTraits: { ...profile.colorTraits, [color]: { ...defaultProfile.colorTraits[color] } },
+      answeredColors: { ...profile.answeredColors, [color]: false }
+    }
+    saveProfile(updated)
+    return updated
+  }
   localStorage.removeItem(PROFILE_KEY)
-  if (clearHistory) localStorage.removeItem(HISTORY_KEY)
+  return { ...defaultProfile }
 }
 
 export function getHistory() {

@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { image, profile, feedbackSummary, mood } = req.body || {}
+  const { image, profile, feedbackSummary, mood, foodPairing } = req.body || {}
   if (!image) {
     return res.status(400).json({ error: 'No image provided' })
   }
@@ -20,18 +20,30 @@ export default async function handler(req, res) {
   const mediaType = match[1]
   const base64Data = match[2]
 
+  function describeColorTraits(color, traits) {
+    if (!traits) return ''
+    const sliderLines = Object.entries(traits)
+      .filter(([k]) => k !== 'loved' && k !== 'avoided')
+      .map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`)
+    let out = `- ${color}: ${sliderLines.join(', ')}`
+    if (traits.loved) out += `\n  Loves: ${traits.loved}`
+    if (traits.avoided) out += `\n  Avoids: ${traits.avoided}`
+    return out
+  }
+
+  const relevantColorLines = []
+  if (mood && mood !== 'any' && profile?.colorTraits?.[mood]) {
+    relevantColorLines.push(describeColorTraits(mood, profile.colorTraits[mood]))
+  } else {
+    // "surprise me" — include every color the user has already answered
+    Object.entries(profile?.answeredColors || {}).forEach(([color, answered]) => {
+      if (answered) relevantColorLines.push(describeColorTraits(color, profile.colorTraits[color]))
+    })
+  }
+
   const profileText = `
-Liked wine types: ${profile?.likedTypes?.join(', ') || 'none specified'}
-Disliked wine types: ${profile?.dislikedTypes?.join(', ') || 'none specified'}
-Taste traits (scale -2 to 2, 0 = neutral):
-- Acidity (soft -2 to bright +2): ${profile?.traits?.acidity}
-- Sweetness (bone dry -2 to sweet +2): ${profile?.traits?.sweetness}
-- Body (light -2 to full +2): ${profile?.traits?.body}
-- Tannin (smooth -2 to bold/grippy +2): ${profile?.traits?.tannin}
-- Oak/butter (clean -2 to buttery/toasty +2): ${profile?.traits?.oak}
-- Fizz (still -2 to loves bubbles +2): ${profile?.traits?.fizz}
-- Style (earthy/restrained/Old World -2 to ripe/fruit-forward/New World +2): ${profile?.traits?.style}
-Freeform notes from user: ${profile?.notes || 'none'}
+${relevantColorLines.length ? `Taste profile (sliders on a -2 to 2 scale, 0 = neutral):\n${relevantColorLines.join('\n')}` : 'No taste profile collected yet for this color — use general crowd-pleasing judgment and lean on the wine\'s own qualities.'}
+${foodPairing ? `Pairing with: ${foodPairing} — factor this into which wine works best.` : ''}
 ${feedbackSummary ? `\nPast feedback to learn from: ${feedbackSummary}` : ''}
 `.trim()
 

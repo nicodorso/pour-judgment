@@ -1,24 +1,18 @@
 import { useState } from 'react'
-import Onboarding from './components/Onboarding.jsx'
 import Capture from './components/Capture.jsx'
 import Results from './components/Results.jsx'
-import { getProfile, saveProfile, addFeedback, summarizeFeedback, resetProfile } from './lib/storage.js'
+import Profile from './components/Profile.jsx'
+import { getProfile, addFeedback, summarizeFeedback, resetProfile, saveColorTraits } from './lib/storage.js'
 
 export default function App() {
   const [profile, setProfile] = useState(getProfile())
-  const [view, setView] = useState(profile.onboarded ? 'capture' : 'onboarding')
+  const [view, setView] = useState('capture')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [feedbackMap, setFeedbackMap] = useState({})
 
-  function completeOnboarding(newProfile) {
-    saveProfile(newProfile)
-    setProfile(newProfile)
-    setView('capture')
-  }
-
-  async function analyzePhoto(imageDataUrl, mood) {
+  async function analyzePhoto(imageDataUrl, mood, foodPairing) {
     setLoading(true)
     setError(null)
     setResult(null)
@@ -31,7 +25,8 @@ export default function App() {
           image: imageDataUrl,
           profile,
           feedbackSummary: summarizeFeedback(),
-          mood
+          mood,
+          foodPairing
         })
       })
       if (!res.ok) {
@@ -75,22 +70,33 @@ export default function App() {
     setView('capture')
   }
 
-  function handleResetProfile() {
-    resetProfile()
-    setProfile(getProfile())
-    setView('onboarding')
+  function handleSaveColorTraits(color, values) {
+    const updated = saveColorTraits(color, values)
+    setProfile(updated)
+  }
+
+  function handleResetColor(color) {
+    const updated = resetProfile(color)
+    setProfile(updated)
   }
 
   return (
     <>
-      {view === 'onboarding' && (
-        <Onboarding profile={profile} onComplete={completeOnboarding} />
-      )}
       {view === 'capture' && (
-        <Capture onAnalyze={analyzePhoto} loading={loading} error={error} onResetProfile={handleResetProfile} />
+        <Capture
+          profile={profile}
+          onAnalyze={analyzePhoto}
+          onSaveColorTraits={handleSaveColorTraits}
+          loading={loading}
+          error={error}
+          onOpenProfile={() => setView('profile')}
+        />
       )}
       {view === 'results' && (
         <Results result={result} onFeedback={handleFeedback} feedbackMap={feedbackMap} onNewPhoto={newPhoto} />
+      )}
+      {view === 'profile' && (
+        <Profile profile={profile} onBack={() => setView('capture')} onReset={handleResetColor} />
       )}
     </>
   )
