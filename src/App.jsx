@@ -45,7 +45,8 @@ export default function App() {
       setView('results')
     } catch (e) {
       console.error('Analyze error:', e)
-      setError(e.message?.includes('(') ? `Couldn't read that list — ${e.message}` : "Couldn't read that list — try a clearer, well-lit photo of the wine section.")
+      const detail = e.message || 'unknown error'
+      setError(`Couldn't read that list — ${detail}`)
     } finally {
       setLoading(false)
     }
