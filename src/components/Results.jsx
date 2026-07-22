@@ -25,8 +25,9 @@ function GlassFill({ score }) {
   )
 }
 
-function WineCard({ wine, isTop, onFeedback, feedbackGiven }) {
+function WineCard({ wine, isTop, onFeedback }) {
   const [expanded, setExpanded] = useState(isTop)
+  const feedbackGiven = !!wine.feedback
 
   return (
     <div className="card" style={{ marginBottom: 14, borderColor: isTop ? 'var(--copper-bright)' : undefined }}>
@@ -89,7 +90,7 @@ function WineCard({ wine, isTop, onFeedback, feedbackGiven }) {
   )
 }
 
-export default function Results({ result, onFeedback, feedbackMap, onNewPhoto }) {
+export default function Results({ result, onFeedback, onNewPhoto }) {
   if (!result) return null
   const { recommendations = [], menuSummary } = result
 
@@ -106,7 +107,6 @@ export default function Results({ result, onFeedback, feedbackMap, onNewPhoto })
             wine={wine}
             isTop={i === 0}
             onFeedback={onFeedback}
-            feedbackGiven={!!feedbackMap[wine.name]}
           />
         ))}
       </div>

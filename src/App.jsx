@@ -2,21 +2,22 @@ import { useState } from 'react'
 import Capture from './components/Capture.jsx'
 import Results from './components/Results.jsx'
 import Profile from './components/Profile.jsx'
-import { getProfile, addFeedback, summarizeFeedback, resetProfile, saveColorTraits } from './lib/storage.js'
+import History from './components/History.jsx'
+import { getProfile, summarizeFeedback, resetProfile, saveColorTraits, addScan, setWineFeedback } from './lib/storage.js'
 
 export default function App() {
   const [profile, setProfile] = useState(getProfile())
   const [view, setView] = useState('capture')
   const [result, setResult] = useState(null)
+  const [currentScanId, setCurrentScanId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [feedbackMap, setFeedbackMap] = useState({})
 
   async function analyzePhoto(imageDataUrl, mood, foodPairing) {
     setLoading(true)
     setError(null)
     setResult(null)
-    setFeedbackMap({})
+    setCurrentScanId(null)
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
@@ -41,7 +42,9 @@ export default function App() {
       }
       const data = await res.json()
       if (data.error) throw new Error(data.error)
-      setResult(data)
+      const scan = addScan({ mood, foodPairing, menuSummary: data.menuSummary, recommendations: data.recommendations })
+      setCurrentScanId(scan.id)
+      setResult({ ...data, recommendations: scan.recommendations })
       setView('results')
     } catch (e) {
       console.error('Analyze error:', e)
@@ -53,16 +56,11 @@ export default function App() {
   }
 
   function handleFeedback(wine, rating) {
-    if (rating === null) {
-      setFeedbackMap(prev => {
-        const next = { ...prev }
-        delete next[wine.name]
-        return next
-      })
-      return
-    }
-    addFeedback({ wineName: wine.name, rating })
-    setFeedbackMap(prev => ({ ...prev, [wine.name]: rating }))
+    setWineFeedback(currentScanId, wine.name, rating)
+    setResult(prev => ({
+      ...prev,
+      recommendations: prev.recommendations.map(r => r.name === wine.name ? { ...r, feedback: rating } : r)
+    }))
   }
 
   function newPhoto() {
@@ -94,10 +92,13 @@ export default function App() {
         />
       )}
       {view === 'results' && (
-        <Results result={result} onFeedback={handleFeedback} feedbackMap={feedbackMap} onNewPhoto={newPhoto} />
+        <Results result={result} onFeedback={handleFeedback} onNewPhoto={newPhoto} />
       )}
       {view === 'profile' && (
-        <Profile profile={profile} onBack={() => setView('capture')} onReset={handleResetColor} />
+        <Profile profile={profile} onBack={() => setView('capture')} onReset={handleResetColor} onViewHistory={() => setView('history')} />
+      )}
+      {view === 'history' && (
+        <History onBack={() => setView('profile')} />
       )}
     </>
   )

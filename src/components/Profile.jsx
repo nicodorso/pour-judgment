@@ -100,7 +100,7 @@ function ColorSection({ colorKey, meta, data, answered, onReset }) {
   )
 }
 
-export default function Profile({ profile, onBack, onReset }) {
+export default function Profile({ profile, onBack, onReset, onViewHistory }) {
   return (
     <div className="screen">
       <button
@@ -111,7 +111,14 @@ export default function Profile({ profile, onBack, onReset }) {
         ← Back
       </button>
       <div className="eyebrow">Your profile</div>
-      <h1 className="h1" style={{ marginTop: 10, marginBottom: 20 }}>What we know so far.</h1>
+      <h1 className="h1" style={{ marginTop: 10, marginBottom: 8 }}>What we know so far.</h1>
+      <button
+        className="body-text"
+        style={{ background: 'none', border: 'none', textDecoration: 'underline', color: 'var(--copper-bright)', fontSize: 13, textAlign: 'left', marginBottom: 20 }}
+        onClick={onViewHistory}
+      >
+        View your full scan history →
+      </button>
 
       {Object.entries(COLOR_META).map(([key, meta]) => (
         <ColorSection
